@@ -2,9 +2,11 @@ import requests
 import re
 import sys
 import getopt
+import os
+from subprocess import call
 
-opts, args = getopt.getopt(sys.argv[1:], '-h-g-d:-n:', ['help','generate', 'dir=', 'name='])
 
+headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0"}
 def GetInfo(Vid):
     print("正在获取课程信息...")
     data={'callCount':1,
@@ -124,45 +126,18 @@ def MakeHtml(Lists):
         f.write(html)
 
 if __name__ == "__main__":
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0"}
-    print("网易云课堂视频下载工具 V1.2 beta1")
-    print("Author:Lz1y")
-    print("Blog:http://www.lz1y.cn/wordpress/")
-    print("\033[0;31mTips:如何获取CourseId")
-    print("         example:一个课程的网址是 http://study.163.com/course/introduction.htm?courseId=320022")
-    print("         320022就是CourseId,输入到下方即可\033[0m!")
-    
-    Vid = input("\n请输入CourseId:\n")
-    LessonName = GetInfo(Vid)
-    Lists = GetVideoUrl(LessonName, Vid)
-    MakeTxt(Lists)
-"""
-    for opt_name, opt_value in opts:
-        if opt_name in ('-d', '--dir'):
-            dir = opt_value
 
-        if opt_name in ('-n', '--name'):
-            name = opt_value
-            with open(name,'w',encoding='utf-8') as f:
-                names = f.readlines()
-            files = os.listdir(dir)
-            for i in range(0,len(files)):
-                os.rename(dir+"/"+files[i],dir+"/"+names[i])
+    #Vid = input("\n请输入CourseId:\n")
+    vid = sys.argv[1]
+    LessonName = GetInfo(vid)
+    d = os.path.join("./", vid)
+    if not os.path.exists(d):
+        os.makedirs(d)
 
-
-        if opt_name in ('-g','--generate'):
-            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0"}
-
-            Vid = input("请输入CourseId:\n")
-            LessonName = GetInfo(Vid)
-            Lists = GetVideoUrl(LessonName, Vid)
-            MakeTxt(Lists)
-
-        if opt_name in ('-h', '--help'):
-            print("-g --generate   生成web页面")
-            
-
-
-
-    #    MakeHtml(Lists)
-"""
+    Lists = GetVideoUrl(LessonName, vid)
+    #print(Lists[0])
+    for idx, val in enumerate(Lists):
+        target = os.path.join("./", vid, str(idx)+".flv")
+        url = val[1]
+        call(["wget", "-O",  target, url])
+    #MakeTxt(Lists)
